@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>心臓血管外科クイズ</title>
+  <style>
+    /* 全体のデザイン設定 */
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f7f6; color: #333; line-height: 1.6; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    h2 { color: #1e3a8a; font-size: 1.3em; margin-bottom: 20px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; }
+    
+    /* 選択肢のデザイン */
+    .option { background: #e0f2fe; margin: 10px 0; padding: 15px; border-radius: 8px; font-weight: bold; color: #0369a1; border-left: 5px solid #0284c7; }
+    
+    /* ボタンのデザイン */
+    .btn { display: inline-block; padding: 10px 15px; margin-top: 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+    .btn-hint { background: #fef08a; color: #854d0e; }
+    .btn-hint:hover { background: #fde047; }
+    .btn-answer { background: #10b981; color: white; width: 100%; text-align: center; font-size: 1.1em; margin-top: 25px; }
+    .btn-answer:hover { background: #059669; }
+    
+    /* 非表示用のクラス */
+    .hidden { display: none; }
+    
+    /* 解説エリアのデザイン */
+    .explanation-box { margin-top: 20px; padding: 20px; background: #ecfdf5; border-radius: 8px; border: 1px solid #a7f3d0; }
+    .explanation-box h3 { margin-top: 0; color: #047857; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div id="loading">データを読み込んでいます...</div>
+    
+    <div id="quiz-area" class="hidden">
+      <h2 id="question-text"></h2>
+      <img id="question-image" src="" alt="問題画像" class="hidden" style="max-width: 100%; border-radius: 8px; margin-bottom: 15px;">
+      
+      <div id="options-container"></div>
+
+      <button id="hint-btn" class="btn btn-hint hidden" onclick="toggleHint()">💡 ヒントを見る</button>
+      <p id="hint-text" class="hidden" style="font-size: 0.9em; color: #666; background: #fffbeb; padding: 10px; border-radius: 6px;"></p>
+
+      <button id="answer-btn" class="btn btn-answer" onclick="showAnswer()">✅ 回答と解説を見る</button>
+
+      <div id="explanation-area" class="explanation-box hidden">
+        <h3>正解：<span id="correct-answer"></span></h3>
+        <p id="explanation-text"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ★★★ここに先ほどGASで発行したWebアプリのURLを貼り付ける★★★
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbzxFKnsH9BmLbfH5V8FZqXexP7yJoKzfJqDsxSyNZp4iPyjVe8EiD151xNOYjbb6QbXkg/exec';
+
+    // ページ読み込み時にデータを取得する
+    async function loadQuiz() {
+      try {
+        const response = await fetch(GAS_URL);
+        if (!response.ok) throw new Error('ネットワークエラー');
+        const data = await response.json();
+
+        if (data.error) {
+          document.getElementById('loading').innerText = 'エラー: ' + data.error;
+          return;
+        }
+
+        // 取得したデータをHTMLに流し込む
+        document.getElementById('question-text').innerText = 'Q. ' + data.question;
+        
+        // 画像URLがあれば表示
+        if (data.image) {
+          const img = document.getElementById('question-image');
+          img.src = data.image;
+          img.classList.remove('hidden');
+        }
+
+        // 選択肢を生成
+        const optionsContainer = document.getElementById('options-container');
+        const options = [data.option1, data.option2, data.option3, data.option4];
+        options.forEach((opt, index) => {
+          if (opt) {
+            const div = document.createElement('div');
+            div.className = 'option';
+            div.innerText = `${index + 1}. ${opt}`;
+            optionsContainer.appendChild(div);
+          }
+        });
+
+        // ヒントがあればボタンを表示
+        if (data.hint) {
+          document.getElementById('hint-btn').classList.remove('hidden');
+          document.getElementById('hint-text').innerText = data.hint;
+        }
+
+        // 回答と解説をセット
+        document.getElementById('correct-answer').innerText = data.answer;
+        document.getElementById('explanation-text').innerText = data.explanation;
+
+        // ロード画面を消してクイズを表示
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('quiz-area').classList.remove('hidden');
+
+      } catch (error) {
+        document.getElementById('loading').innerText = 'データの取得に失敗しました。URLが正しいか確認してください。';
+      }
+    }
+
+    // ヒントの表示/非表示を切り替える関数
+    function toggleHint() {
+      document.getElementById('hint-text').classList.toggle('hidden');
+    }
+
+    // 回答と解説を表示する関数
+    function showAnswer() {
+      document.getElementById('explanation-area').classList.remove('hidden');
+      document.getElementById('answer-btn').classList.add('hidden'); // ボタンは隠す
+    }
+
+    // スクリプトの実行開始
+    loadQuiz();
+  </script>
+
+</body>
+</html>
