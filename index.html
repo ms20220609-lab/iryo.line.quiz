@@ -48,13 +48,21 @@
   <script>
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbzxFKnsH9BmLbfH5V8FZqXexP7yJoKzfJqDsxSyNZp4iPyjVe8EiD151xNOYjbb6QbXkg/exec';
 
-    async function loadQuizzes() {
+async function loadQuizzes() {
       try {
-        const response = await fetch(GAS_URL);
+        // 【追加】LINEで送られたURLのパラメータ（?d=〇）を取得してGASに渡す
+        const urlParams = new URLSearchParams(window.location.search);
+        const dayParam = urlParams.get('d');
+        let fetchUrl = GAS_URL;
+        if (dayParam) {
+          fetchUrl += `?d=${dayParam}`;
+        }
+
+        const response = await fetch(fetchUrl);
         const quizzes = await response.json();
 
         if (quizzes.error) {
-          document.getElementById('loading').innerHTML = `<div style="color:#ef4444;">エラー: ${quizzes.error}</div>`;
+          document.getElementById('loading').innerHTML = `<div style="color:#ef4444;"><i class="fa-solid fa-lock"></i> ${quizzes.error}</div>`;
           return;
         }
 
@@ -66,69 +74,41 @@
           card.className = 'quiz-card';
           
           const options = [data.option1, data.option2, data.option3, data.option4].filter(o => o && o.trim() !== "");
-          
           let optionsHtml = '';
           options.forEach((opt, i) => {
-            optionsHtml += `
-              <div class="option" onclick="selectOption(this, ${index})">
-                ${i + 1}. ${opt}
-              </div>
-            `;
+            optionsHtml += `<div class="option" onclick="selectOption(this, ${index})">${i + 1}. ${opt}</div>`;
           });
 
           const imageHtml = data.image ? `<img src="${data.image}" class="q-image" alt="問題画像">` : '';
-          
-          const hintBtnHtml = data.hint ? `
-            <button class="btn btn-hint" onclick="toggleHint(${index})">
-              <i class="fa-solid fa-lightbulb"></i> ヒントを見る
-            </button>
-            <p id="hint-${index}" class="hidden" style="font-size: 0.9em; padding: 12px; margin-top: 10px; color: #666; background:#fff; border-radius:8px; border:1px dashed #cbd5e1;">${data.hint}</p>
-          ` : '';
+          const hintBtnHtml = data.hint ? `<button class="btn btn-hint" onclick="toggleHint(${index})"><i class="fa-solid fa-lightbulb"></i> ヒントを見る</button><p id="hint-${index}" class="hidden" style="font-size: 0.9em; padding: 12px; margin-top: 10px; color: #666; background:#fff; border-radius:8px; border:1px dashed #cbd5e1;">${data.hint}</p>` : '';
 
           card.innerHTML = `
             <div class="question-text">問${index + 1}. ${data.question}</div>
             ${imageHtml}
-            
             <div class="options-group">${optionsHtml}</div>
-
             ${hintBtnHtml}
-
-            <button id="ans-btn-${index}" class="btn btn-answer" onclick="toggleAnswer(${index})">
-              <i class="fa-solid fa-check-double"></i> 回答と解説を見る
-            </button>
-
+            <button id="ans-btn-${index}" class="btn btn-answer" onclick="toggleAnswer(${index})"><i class="fa-solid fa-check-double"></i> 回答と解説を見る</button>
             <div id="expl-${index}" class="explanation-area">
               <h4>正解：${data.answer}</h4>
               <p>${data.explanation}</p>
             </div>
           `;
-          
           container.appendChild(card);
         });
-
       } catch (e) {
         document.getElementById('loading').innerHTML = `<div style="color:#ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> 通信エラーが発生しました。</div>`;
       }
     }
 
-    function selectOption(clickedElement, quizIndex) {
-      const card = document.getElementsByClassName('quiz-card')[quizIndex];
-      const opts = card.getElementsByClassName('option');
-      for (let opt of opts) {
-        opt.classList.remove('selected');
-      }
-      clickedElement.classList.add('selected');
+    function selectOption(el, quizIndex) {
+      const opts = document.getElementsByClassName('quiz-card')[quizIndex].getElementsByClassName('option');
+      for (let opt of opts) opt.classList.remove('selected');
+      el.classList.add('selected');
     }
-
-    function toggleHint(index) {
-      const hintEl = document.getElementById(`hint-${index}`);
-      hintEl.classList.toggle('hidden');
-    }
-
+    function toggleHint(index) { document.getElementById(`hint-${index}`).classList.toggle('hidden'); }
     function toggleAnswer(index) {
       const area = document.getElementById(`expl-${index}`);
       const btn = document.getElementById(`ans-btn-${index}`);
-      
       if (area.style.display === 'block') {
         area.style.display = 'none';
         btn.innerHTML = '<i class="fa-solid fa-check-double"></i> 回答と解説を見る';
@@ -139,7 +119,6 @@
         btn.style.background = '#059669';
       }
     }
-
     loadQuizzes();
   </script>
 </body>
