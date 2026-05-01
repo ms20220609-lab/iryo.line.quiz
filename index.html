@@ -9,7 +9,6 @@
     body { font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; background-color: #f0f2f5; color: #333; line-height: 1.6; padding: 15px; margin: 0; }
     .header { text-align: center; padding: 10px 0 20px; }
     .header h1 { color: #1e3a8a; font-size: 1.4em; margin: 0; }
-    .header p { font-size: 0.9em; color: #64748b; margin-top: 5px; }
 
     .quiz-card { background: #fff; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); padding: 25px 20px; margin-bottom: 30px; border: 1px solid #e5e7eb; }
     
@@ -41,14 +40,12 @@
 
   <div class="header">
     <h1><i class="fa-solid fa-heart-pulse" style="color:#ef4444;"></i> 心臓血管外科 Daily Quiz</h1>
-    <p id="day-label">データを取得中...</p>
   </div>
 
   <div id="loading"><i class="fas fa-spinner fa-spin"></i> 問題を読み込んでいます...</div>
   <div id="quiz-container"></div>
 
   <script>
-    // あなたのGASのURL（設定済み）
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbzxFKnsH9BmLbfH5V8FZqXexP7yJoKzfJqDsxSyNZp4iPyjVe8EiD151xNOYjbb6QbXkg/exec';
 
     async function loadQuizzes() {
@@ -64,9 +61,6 @@
         const container = document.getElementById('quiz-container');
         document.getElementById('loading').classList.add('hidden');
         
-        const dayCount = quizzes[0].dayCount || '不明';
-        document.getElementById('day-label').innerText = `配信日: 第 ${dayCount} 日目`;
-
         quizzes.forEach((data, index) => {
           const card = document.createElement('div');
           card.className = 'quiz-card';
